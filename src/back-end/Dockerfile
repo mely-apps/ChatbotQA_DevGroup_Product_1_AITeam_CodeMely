@@ -16,7 +16,7 @@ RUN apt-get update && apt-get install -y \
     && rm -rf /var/lib/apt/lists/*
 
 # Expose port
-EXPOSE 30000
+EXPOSE 30002
 
 # Khởi động ứng dụng
 CMD ["uvicorn", "rag_backend:app", "--host", "0.0.0.0", "--port", "30002"] 

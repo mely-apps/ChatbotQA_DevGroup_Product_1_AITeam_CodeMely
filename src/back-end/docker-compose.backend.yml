@@ -8,7 +8,7 @@ services:
     image: chatbot-rag-backend:latest
     container_name: chatbot-rag-backend
     ports:
-      - "30000:30000"
+      - "30002:30002"
     environment:
       - QDRANT_URL=${QDRANT_URL}
       - QDRANT_API_KEY=${QDRANT_API_KEY}
@@ -20,7 +20,7 @@ services:
       - ./.env:/app/.env
     restart: unless-stopped
     healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:30000/health"]
+      test: ["CMD", "curl", "-f", "http://localhost:30002/health"]
       interval: 30s
       timeout: 10s
       retries: 3

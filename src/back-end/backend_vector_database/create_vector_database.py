@@ -21,11 +21,11 @@ QDRANT_API_KEY = os.getenv("QDRANT_API_KEY")
 QDRANT_URL = os.getenv("QDRANT_URL")
 EMBEDDINGS_MODEL_NAME = os.getenv("EMBEDDINGS_MODEL_NAME", "sentence-transformers/paraphrase-multilingual-mpnet-base-v2")
 HUGGINGFACE_API_KEY = os.getenv("HUGGINGFACE_API_KEY")
-COLLECTION_NAME = os.getenv("COLLECTION_NAME", "legal_rag")
+COLLECTION_NAME = os.getenv("COLLECTION_NAME", "DevOiMinhDiDauThe_RAG")
 
 def create_vector_database(excel_file_path, collection_name=None):
     """
-    Create a vector database from an Excel file containing legal Q&A data.
+    Create a vector database from an Excel file containing content data.
     
     Args:
         excel_file_path (str): Path to the Excel file
@@ -41,27 +41,28 @@ def create_vector_database(excel_file_path, collection_name=None):
     # Load Excel data
     data = pd.read_excel(excel_file_path)
     
-    # Extract and preprocess the "Câu hỏi" and "Đáp án" columns
-    questions = data["Câu hỏi"].dropna().tolist()
-    answers = data["Đáp án"].dropna().tolist()
+    print(f"Creating document objects with metadata...")
+    # Create Document objects with the new metadata structure
+    documents = []
+    for _, row in data.iterrows():
+        if pd.notna(row['content']):  # Only process rows with content
+            documents.append(
+                Document(
+                    page_content=row['content'],
+                    metadata={
+                        "date": row['date'] if pd.notna(row['date']) else None,
+                        "author": row['author'] if pd.notna(row['author']) else None,
+                        "link_post": row['link_post'] if pd.notna(row['link_post']) else None,
+                        "hashtag": row['hashtag'] if pd.notna(row['hashtag']) else None
+                    }
+                )
+            )
     
-    # Ensure questions and answers have the same length
-    if len(questions) != len(answers):
-        print(f"Warning: Mismatch between number of questions ({len(questions)}) and answers ({len(answers)})")
-        # Find the minimum length to avoid index errors
-        min_length = min(len(questions), len(answers))
-        questions = questions[:min_length]
-        answers = answers[:min_length]
-    
-    print(f"Creating {len(answers)} document objects with metadata...")
-    # Add metadata to each chunk and create Document objects
-    documents = [
-        Document(
-            page_content=answer,
-            metadata={"source": excel_file_path, "question": question}
-        )
-        for question, answer in zip(questions, answers)
-    ]
+    if not documents:
+        print("No valid documents found in Excel file!")
+        return None
+        
+    print(f"Processing {len(documents)} documents...")
     
     print(f"Initializing embeddings with model: {EMBEDDINGS_MODEL_NAME}")
     # Generate embeddings using HuggingFaceInferenceAPIEmbeddings
@@ -113,13 +114,18 @@ def create_vector_database_from_text_files(text_dir, collection_name=None):
                     # Split content into chunks (simple approach - by paragraphs)
                     paragraphs = [p for p in content.split('\n\n') if p.strip()]
                     
-                    # Create Document objects for each paragraph
+                    # Create Document objects for each paragraph with the new metadata structure
                     for paragraph in paragraphs:
                         if len(paragraph.strip()) > 50:  # Only include substantial paragraphs
                             documents.append(
                                 Document(
                                     page_content=paragraph,
-                                    metadata={"source": file_path, "_id": os.path.basename(file_path)}
+                                    metadata={
+                                        "date": None,
+                                        "author": None,
+                                        "link_post": None,
+                                        "hashtag": None
+                                    }
                                 )
                             )
                     
