@@ -27,7 +27,7 @@ npm run dev
 Or if you need to specify the port:
 
 ```bash
-npm run dev -- --port 30001
+npm run dev -- --port 30003
 ```
 
 ## 4. For production testing locally
@@ -37,7 +37,7 @@ npm run dev -- --port 30001
 npm run build
 
 # Serve using a local server
-npx serve -s dist -l 30001
+npx serve -s dist -l 30003
 ```
 
 ## 5. Setup environment variables
