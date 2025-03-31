@@ -36,7 +36,7 @@ load_dotenv()
 class Config:
     QDRANT_URL = os.getenv("QDRANT_URL")
     QDRANT_API_KEY = os.getenv("QDRANT_API_KEY")
-    QDRANT_COLLECTION = os.getenv("COLLECTION_NAME", "legal_rag")
+    QDRANT_COLLECTION = os.getenv("COLLECTION_NAME", "DevOiMinhDiDauThe_RAG")
     HUGGINGFACE_API_KEY = os.getenv("HUGGINGFACE_API_KEY")
     EMBEDDINGS_MODEL_NAME = os.getenv("EMBEDDINGS_MODEL_NAME", "sentence-transformers/paraphrase-multilingual-mpnet-base-v2")
     OPENAI_API_KEY = os.getenv("OPENAI_API_KEY")
@@ -62,8 +62,8 @@ class ChatResponse(BaseModel):
 
 # Create FastAPI app
 app = FastAPI(
-    title="Legal RAG API",
-    description="API for Legal RAG Chatbot",
+    title="RAG API",
+    description="API for RAG Chatbot",
     version="1.0.0",
 )
 
@@ -155,13 +155,27 @@ def search_semantic(query: str, top_k: int = 5):
             score_threshold=0.5
         )
         
-        return search_results
+        # Validate results
+        if not search_results:
+            logger.warning("No search results found")
+            return []
+            
+        # Validate payload structure
+        valid_results = []
+        for result in search_results:
+            if result.payload and "page_content" in result.payload:
+                valid_results.append(result)
+            else:
+                logger.warning(f"Invalid payload structure: {result.payload}")
+                
+        return valid_results
+        
     except Exception as e:
         logger.error(f"Semantic search error: {str(e)}")
         raise HTTPException(status_code=500, detail=f"Search error: {str(e)}")
 
 def search_exact(query: str):
-    """Search for exact match in questions"""
+    """Search for exact match in content"""
     global qdrant_client
     
     try:
@@ -169,7 +183,7 @@ def search_exact(query: str):
         scroll_filter = models.Filter(
             must=[
                 models.FieldCondition(
-                    key="metadata.question",
+                    key="page_content",  # Keep as page_content since this is what Langchain uses
                     match=models.MatchValue(value=query)
                 )
             ]
@@ -188,7 +202,6 @@ def search_exact(query: str):
         return None
     except Exception as e:
         logger.error(f"Exact search error: {str(e)}")
-        # Don't raise exception, just return None
         return None
 
 async def get_openai_response(messages: List[Dict[str, str]], model: str = "gpt-3.5-turbo", temperature: float = 0.7):
@@ -228,9 +241,12 @@ async def chat_completions(request: ChatRequest):
             content = exact_match.payload.get('page_content', '')
             metadata = exact_match.payload.get('metadata', {})
             
+            # Format response with metadata
             response_content = (
                 f"{content}\n\n"
-                f"(Nguồn: {metadata.get('source', 'Không rõ')})"
+                f"(Nguồn: {metadata.get('link_post', 'Không rõ')}, "
+                f"Tác giả: {metadata.get('author', 'Không rõ')}, "
+                f"Ngày đăng: {metadata.get('date', 'Không rõ')})"
             )
             
             return ChatResponse(
@@ -248,6 +264,14 @@ async def chat_completions(request: ChatRequest):
         # Step 2: Semantic search
         logger.info("Performing semantic search...")
         search_results = search_semantic(user_message)
+        
+        if search_results:
+            # Log the structure of first result for debugging
+            first_result = search_results[0]
+            logger.debug(f"Sample search result structure:")
+            logger.debug(f"Score: {first_result.score}")
+            logger.debug(f"Payload: {first_result.payload}")
+            logger.debug(f"Metadata: {first_result.payload.get('metadata', {})}")
         
         if not search_results:
             logger.info("No relevant documents found")
@@ -268,7 +292,7 @@ async def chat_completions(request: ChatRequest):
         for result in search_results:
             score = result.score
             payload = result.payload
-            content = payload.get("page_content", "")
+            content = payload.get("page_content", "")  # Keep as page_content
             metadata = payload.get("metadata", {})
             
             # For high confidence results, return directly
@@ -276,7 +300,9 @@ async def chat_completions(request: ChatRequest):
                 logger.info(f"High confidence match found (score: {score})")
                 response_content = (
                     f"{content}\n\n"
-                    f"(Nguồn: {metadata.get('source', 'Không rõ')})"
+                    f"(Nguồn: {metadata.get('link_post', 'Không rõ')}, "
+                    f"Tác giả: {metadata.get('author', 'Không rõ')}, "
+                    f"Ngày đăng: {metadata.get('date', 'Không rõ')})"
                 )
                 
                 return ChatResponse(
@@ -297,8 +323,10 @@ async def chat_completions(request: ChatRequest):
         # Step 3: Use OpenAI with context
         logger.info("Using OpenAI with context...")
         system_content = (
-            "Bạn là trợ lý AI giúp trả lời các câu hỏi về luật giao thông. "
-            "Hãy sử dụng thông tin sau để trả lời:\n\n" + 
+            "Bạn là trợ lý AI thông minh và hữu ích. "
+            "Hãy trả lời câu hỏi của người dùng dựa trên thông tin được cung cấp dưới đây. "
+            "Nếu thông tin không đủ để trả lời chính xác, hãy thông báo cho người dùng. "
+            "Thông tin tham khảo:\n\n" + 
             "\n\n".join(context)
         )
         

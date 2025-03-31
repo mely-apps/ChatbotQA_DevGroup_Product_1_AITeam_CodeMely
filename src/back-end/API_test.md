@@ -81,3 +81,55 @@ Output:
     }
 }
 ```
+
+3. 
+
+curl -X 'POST' \
+  'http://localhost:30002/v1/chat/completions' \
+  -H 'accept: application/json' \
+  -H 'Content-Type: application/json' \
+  -d '{
+  "messages": [
+    {
+      "role": "user",
+      "content": "Bạn có bài viết về AI không"
+    }
+  ],
+  "model": "gpt-3.5-turbo",
+  "temperature": 0.7,
+  "stream": false
+}'
+
+Output: 
+
+{
+  "id": "chatcmpl-ecd49e3b93cde640a0bec598",
+  "object": "chat.completion",
+  "created": 22071709,
+  "model": "gpt-3.5-turbo-0125",
+  "choices": [
+    {
+      "index": 0,
+      "message": {
+        "role": "assistant",
+        "content": "Dĩ nhiên, dưới đây là một số bài viết về AI mà bạn có thể quan tâm:\n\n1. [Khoa học máy tính và trí tuệ nhân tạo: Sự khác biệt và mối quan hệ](https://www.facebook.com/groups/devoiminhdidauthe/permalink/10095993197137627/): Bài viết này giải thích sự khác biệt giữa Khoa học máy tính và Trí tuệ nhân tạo, cũng như mối quan hệ chặt chẽ giữa hai lĩnh vực này.\n\n2. [Tìm hiểu về các lĩnh vực con trong ngành AI - Phần 2: Machine Learning](https://www.facebook.com/groups/devoiminhdidauthe/permalink/10095993197137627/): Bài viết này giới thiệu về các lĩnh vực con trong Machine Learning, là một phần quan trọng của Trí tuệ nhân tạo.\n\n3. [Confusion Matrix và các chỉ số đánh giá mô hình học máy](https://www.facebook.com/groups/devoiminhdidauthe/permalink/10095993197137627/): Bài viết này giúp bạn hiểu rõ hơn về Confusion Matrix và các chỉ số được sử dụng để đánh giá một mô hình học máy.\n\n4. [Tìm hiểu về thuật toán Navie Bayes](https://www.facebook.com/groups/devoiminhdidauthe/permalink/10095993197137627/): Bài viết này cung cấp kiến thức về thuật toán Navie Bayes và cách nó hoạt động trong việc phân loại dữ liệu.\n\nNếu bạn muốn biết thêm về bất kỳ chủ đề nào khác liên quan đến AI, hãy cho mình biết để mình có thể cung cấp thông tin chi tiết hơn cho bạn."
+      },
+      "finish_reason": "stop"
+    }
+  ],
+  "usage": {
+    "completion_tokens": 513,
+    "prompt_tokens": 2785,
+    "total_tokens": 3298,
+    "completion_tokens_details": {
+      "accepted_prediction_tokens": 0,
+      "audio_tokens": 0,
+      "reasoning_tokens": 0,
+      "rejected_prediction_tokens": 0
+    },
+    "prompt_tokens_details": {
+      "audio_tokens": 0,
+      "cached_tokens": 0
+    }
+  }
+}

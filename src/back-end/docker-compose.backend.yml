@@ -1,18 +1,18 @@
 version: '3.8'
 
 services:
-  rag-backend:
+  devoiminhdidauthe-chatbot-backend:
     build:
       context: .
       dockerfile: Dockerfile
-    image: chatbot-rag-backend:latest
-    container_name: chatbot-rag-backend
+    image: devoiminhdidauthe-chatbot-backend:latest
+    container_name: devoiminhdidauthe-chatbot-backend
     ports:
       - "30002:30002"
     environment:
       - QDRANT_URL=${QDRANT_URL}
       - QDRANT_API_KEY=${QDRANT_API_KEY}
-      - COLLECTION_NAME=${COLLECTION_NAME:-legal_rag}
+      - COLLECTION_NAME=${COLLECTION_NAME:-DevOiMinhDiDauThe_RAG}
       - HUGGINGFACE_API_KEY=${HUGGINGFACE_API_KEY}
       - EMBEDDINGS_MODEL_NAME=${EMBEDDINGS_MODEL_NAME:-sentence-transformers/paraphrase-multilingual-mpnet-base-v2}
       - OPENAI_API_KEY=${OPENAI_API_KEY}
