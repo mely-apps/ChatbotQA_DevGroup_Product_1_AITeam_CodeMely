@@ -97,9 +97,10 @@ function ChatBot(props) {
         },
         body: JSON.stringify({
           messages: [
-            {"role": "user", "content": `[Nguồn: ${sourceData}] ${promptInput}`}
+            {"role": "user", "content": promptInput}
           ],
-          model: "gpt-4o"
+          model: "gpt-3.5-turbo",
+          temperature: 0.3
         })
       })
         .then((response) => {

@@ -32,8 +32,8 @@ COPY --from=build /app/dist /usr/share/nginx/html
 RUN rm /etc/nginx/conf.d/default.conf
 COPY nginx.conf /etc/nginx/conf.d
 
-# Expose port 30001
-EXPOSE 30001
+# Expose port 30003
+EXPOSE 30003
 
 # Start nginx
 CMD ["nginx", "-g", "daemon off;"]
